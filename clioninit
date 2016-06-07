@@ -1,0 +1,59 @@
+#!/usr/bin/python
+#coding=utf-8
+"""
+为clion的初始化CMakeList.txt
+
+将该脚本置于clion项目根目录,与CMakeLists.txt同目录
+执行该脚本即可自动添加include路径
+"""
+
+#config param
+cmake_version = "3.3"
+
+import os
+import sys
+
+include_directories_set = set()
+source_files = []
+
+def SplitDirectory(path):
+    retlist = path.split("/")
+    for i in range(2, len(retlist)+1):
+        include_directories_set.add("/".join(retlist[1:i]))
+
+def ScanDirectory():
+    for rt, dirs, files in os.walk("."):
+        needInclude = False
+        for i in files:
+            if i[-2:] == ".h":
+                needInclude = True
+                source_files.append((rt + "/" + i)[2:])
+            elif i[-4:] == ".hpp":
+                needInclude = True
+                source_files.append((rt + "/" + i)[2:])
+            elif i[-2:] == ".c":
+                source_files.append((rt + "/" + i)[2:])
+            elif i[-3:] == ".cc":
+                source_files.append((rt + "/" + i)[2:])
+            elif i[-4:] == ".cpp":
+                source_files.append((rt + "/" + i)[2:])
+
+        if needInclude:
+            SplitDirectory(rt)
+
+if __name__ == "__main__":
+    f = open('CMakeLists.txt', 'w')
+    ScanDirectory()
+    f.write("#Init by clioninit.py\n")
+    f.write("cmake_minimum_required(VERSION " + cmake_version + ")\n")
+    f.write("project(" + os.path.basename(os.getcwd()) + ")\n\n")
+    f.write("set(CMAKE_CXX_FLAGS \"${CMAKE_CXX_FLAGS} -std=c++11\")\n\n")
+    f.write("set(SOURCE_FILES\n")
+    for i in source_files:
+        f.write("    " + i + "\n")
+    f.write(")\n\n")
+    f.write("add_executable(" + os.path.basename(os.getcwd()) + " ${SOURCE_FILES})\n")
+    include_directories = list(include_directories_set)
+    include_directories.sort()
+    for i in include_directories:
+        f.write("include_directories(" + i + ")\n")
