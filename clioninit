@@ -1,14 +1,15 @@
 #!/usr/bin/python
 #coding=utf-8
+
 """
 为clion的初始化CMakeList.txt
-
-将该脚本置于clion项目根目录,与CMakeLists.txt同目录
-执行该脚本即可自动添加include路径
+到项目根目录执行该命令即可初始化CMakeList.txt
 """
 
 #config param
 cmake_version = "3.3"
+source_file_type = [".h",".hpp",".c",".cpp"]
+include_file_type = [".h",".hpp"]
 
 import os
 import sys
@@ -25,19 +26,14 @@ def ScanDirectory():
     for rt, dirs, files in os.walk("."):
         needInclude = False
         for i in files:
-            if i[-2:] == ".h":
-                needInclude = True
-                source_files.append((rt + "/" + i)[2:])
-            elif i[-4:] == ".hpp":
-                needInclude = True
-                source_files.append((rt + "/" + i)[2:])
-            elif i[-2:] == ".c":
-                source_files.append((rt + "/" + i)[2:])
-            elif i[-3:] == ".cc":
-                source_files.append((rt + "/" + i)[2:])
-            elif i[-4:] == ".cpp":
-                source_files.append((rt + "/" + i)[2:])
-
+            for sft in source_file_type:
+                if i[-len(sft):] == sft:
+                    source_files.append((rt + "/" + i)[2:])
+                    break
+            for ift in include_file_type:
+                if i[-len(ift):] == ift:
+                    needInclude = True
+                    break
         if needInclude:
             SplitDirectory(rt)
 
