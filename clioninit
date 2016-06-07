@@ -8,7 +8,7 @@
 
 #config param
 cmake_version = "3.3"
-source_file_type = [".h",".hpp",".c",".cpp"]
+source_file_type = [".h",".hpp",".c",".cc",".cpp"]
 include_file_type = [".h",".hpp"]
 
 import os
