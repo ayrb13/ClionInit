@@ -8,8 +8,10 @@
 
 #config param
 cmake_version = "3.3"
-source_file_type = [".h",".hpp",".c",".cc",".cpp"]
+source_file_type = [".h",".hpp",".c",".cc",".cpp","tcc"]
 include_file_type = [".h",".hpp"]
+exclude_sourse_file_name = ["thirdparty"] #避免建索引过慢，boost实在太大了
+exclude_include_file_name = ["boost","memcache"]
 
 import os
 import sys
@@ -17,23 +19,37 @@ import sys
 include_directories_set = set()
 source_files = []
 
+def ShouldExclude(path,issrc):
+    exclude_file_name = None
+    if issrc:
+        exclude_file_name = exclude_sourse_file_name
+    else:
+        exclude_file_name = exclude_include_file_name
+    for i in exclude_file_name:
+        if path.find(i) != -1:
+            return True
+    return False
+
 def SplitDirectory(path):
     retlist = path.split("/")
     for i in range(2, len(retlist)+1):
         include_directories_set.add("/".join(retlist[1:i]))
 
 def ScanDirectory():
+    include_directories_set.add(".")
     for rt, dirs, files in os.walk("."):
         needInclude = False
         for i in files:
-            for sft in source_file_type:
-                if i[-len(sft):] == sft:
-                    source_files.append((rt + "/" + i)[2:])
-                    break
-            for ift in include_file_type:
-                if i[-len(ift):] == ift:
-                    needInclude = True
-                    break
+            if ShouldExclude(rt, True) == False:
+                for sft in source_file_type:
+                    if i[-len(sft):] == sft:
+                        source_files.append((rt + "/" + i)[2:])
+                        break
+            if ShouldExclude(rt, False) == False:
+                for ift in include_file_type:
+                    if i[-len(ift):] == ift:
+                        needInclude = True
+                        break
         if needInclude:
             SplitDirectory(rt)
 
